@@ -20,8 +20,8 @@ This code is embedded into the [Surf Ice](https://www.nitrc.org/plugins/mwiki/in
 
 While this algorithm is embedded into Surf Ice, that is a complex program. This GitHub page includes a basic command line program that allows the user to load a OBJ format mesh, decimate the mesh and save the result to disk. You will need to have the freepascal compiler installed.
 
- -To compile the program "fpc -O3 simplify.pas"
- -Once compiled, you can run the program with a command like this "./simplify bunny.obj out.obj 0.2", which should produce a new mesh with 20% of the faces found in the original.
+ - To compile the program "fpc -O3 simplify.pas"
+ - Once compiled, you can run the program with a command like this "./simplify bunny.obj out.obj 0.2", which should produce a new mesh with 20% of the faces found in the original.
 
 
 ##### Recent Versions
