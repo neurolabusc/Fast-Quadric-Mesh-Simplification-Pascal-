@@ -38,6 +38,4 @@ While this algorithm is embedded into Surf Ice, that is a complex program. This 
  - [Introduction to terms and concepts](https://software.intel.com/en-us/articles/3d-modeling-and-parallel-mesh-simplification)
  - [Original paper from Garland & Heckbert (1997) that introduces quadric error metrics (includes nice visualization of this measure)](http://www.cs.cmu.edu/~./garland/Papers/quadric2.pdf)
 
-https://software.intel.com/en-us/articles/3d-modeling-and-parallel-mesh-simplification
-
 
