@@ -17,7 +17,7 @@ interface
 // 5/2016: Chris Rorden ported from C++ to FreePascal/Delphi
 
 uses
-  Classes, SysUtils, Math, dialogs;
+  Classes, SysUtils, Math;
 
 type
 
