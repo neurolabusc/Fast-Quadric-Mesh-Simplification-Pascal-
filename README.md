@@ -13,7 +13,7 @@ Mesh triangle reduction using quadrics. This is a Pascal port of Sven Forstmann'
 
 This code is embedded into the [Surf Ice](https://www.nitrc.org/plugins/mwiki/index.php/surfice:MainPage) surface rendering tool (versions 5 May 2016 and later). Surf Ice is available pre-compiled for Linux, OSX and Windows, and the source code is available on GitHub. The software read meshes in many popular formats (3ds, AC3D, dxf, GIfTI, gts lwo, ms3d, mz3, ctm, dae/Collada, FreeSurfer, nv, obj, off, ply, stl, vtk) and can export decimated meshes to several formats (mz3, GIfTI, obj, ply). To decimate an image, load the mesh with the File/Open menu item and then choose Advanced/SimplifyMesh menu item to simplify the object. If you are happy with the results you can choose Advanced/SaveMesh. The screen shot below shows the original (left column) and 90% decimated (right column) mesh of the human brain. The top row shows a wire-frame view that helps visualize the mesh complexity, while the bottom row shows the how similar these two meshes look with per-pixel shading.
 
-![img](https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification/blob/master/screenshot.png?raw=true)
+![img](https://raw.githubusercontent.com/neurolabusc/Fast-Quadric-Mesh-Simplification-Pascal-/master/screenshot.jpg?raw=true)
 
 
 #####  A simple command line demo
