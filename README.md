@@ -26,9 +26,18 @@ While this algorithm is embedded into Surf Ice, that is a complex program. This 
 
 ##### Versions
 
-5-May-2016
- - Initial release
+ - 5-May-2016 : Initial release
 
 ##### License
 
-This software uses the [MIT license](https://opensource.org/licenses/MIT)
+ - This software uses the [MIT license](https://opensource.org/licenses/MIT)
+
+##### Links
+
+ - [Comparison of some popular algorithms](http://www.alecjacobson.com/weblog/?tag=mesh-decimation)
+ - [Introduction to terms and concepts](https://software.intel.com/en-us/articles/3d-modeling-and-parallel-mesh-simplification)
+ - [Original paper from Garland & Heckbert (1997) that introduces quadric error metrics (includes nice visualization of this measure)](http://www.cs.cmu.edu/~./garland/Papers/quadric2.pdf)
+
+https://software.intel.com/en-us/articles/3d-modeling-and-parallel-mesh-simplification
+
+
