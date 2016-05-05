@@ -1,22 +1,27 @@
 program simplify;
+//Example program to simplify meshes
+// https://github.com/neurolabusc/Fast-Quadric-Mesh-Simplification-Pascal-
+//To compile
+// fpc -O3 -XX -Xs simplify.pas
+//On OSX to explicitly compile as 64-bit
+// ppcx64  -O3 -XX -Xs simplify.pas
+//To execute
+// ./simplify bunny.obj out.obj 0.2
+
 {$mode objfpc}{$H+}
 uses meshify_simplify_quadric, Classes, sysutils;
 
   type
-   TPoint3f = packed record
-    X: single;
-    Y: single;
-    Z: single
-  end;
+
  TPoint3i = packed record
-    X: longint; //ensure 32-bit for simple GIfTI writing
+    X: longint;
     Y: longint;
     Z: longint;
   end;
 
   TMesh = class
     faces : array of TPoint3i;
-    vertices: array of TPoint3f;
+    vertices: array of Tvec3f;
   private
 
   public
@@ -60,9 +65,7 @@ var
    s : string;
    strlst : TStringList;
    i,j, num_v, num_f, new_f: integer;
-   //t: DWord;
 begin
-  //t:= gettickcount;
      fsz := FSize (FileName);
      if fsz < 32 then exit;
      //init values
@@ -91,9 +94,9 @@ begin
                if (pos('/', strlst[i]) > 1) then // "f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3" -> f v1 v2 v3
                   strlst[i] := Copy(strlst[i], 1, pos('/', strlst[i])-1);
            for j := 1 to (new_f) do begin
-               faces[num_f].X := strtointDef(strlst[1], 0) - 1;
-               faces[num_f].Y := strtointDef(strlst[j+1], 0) - 1;  //-1 since "A valid vertex index starts from 1"
-               faces[num_f].Z := strtointDef(strlst[j+2], 0) - 1;  //-1 since "A valid vertex index starts from 1"
+               faces[num_f].X := strtointDef(strlst[1], 0) - 1; //-1 since "A valid vertex index starts from 1"
+               faces[num_f].Y := strtointDef(strlst[j+1], 0) - 1; //-1 since "A valid vertex index starts from 1"
+               faces[num_f].Z := strtointDef(strlst[j+2], 0) - 1; //-1 since "A valid vertex index starts from 1"
                inc(num_f);
            end;
         end;
@@ -106,12 +109,10 @@ begin
            inc(num_v);
         end;
      end;
-     //showmessage(format('%d %g %g %g',[num_v, vertices[num_v-1].X, vertices[num_v-1].Y, vertices[num_v-1].Z]));
      CloseFile(f);
      strlst.free;
      setlength(faces, num_f);
      setlength(vertices, num_v);
-  //GLForm1.caption := ('ms '+ inttostr(gettickcount()- t) );
 end; // LoadObj()
 
 procedure TMesh.SaveObj(const FileName: string);
@@ -139,7 +140,6 @@ end;
 
 procedure ShowHelp;
 begin
-	writeln('Mesh Simplification (C)2014 by Sven Forstmann in 2014, MIT License (64-bit)');
 	writeln('Usage: '+paramstr(0)+' <input> <output> <ratio> <agressiveness)');
 	writeln(' Input: name of existing OBJ format mesh');
  	writeln(' Output: name for decimated OBJ format mesh');
@@ -153,7 +153,7 @@ begin
 	{$ENDIF}
 end;
 
-procedure printf(s: string);
+procedure printf(s: string); //for GUI applications, this would call showmessage or memo1.lines.add
 begin
      writeln(s);
 end;
@@ -163,6 +163,7 @@ var
   i, targetTri: integer;
   mesh: TMesh;
   msh: TSimplify;
+  {$IFDEF FPC} msec: qWord; {$ELSE} msec: dWord; {$ENDIF}
 begin
   mesh := TMesh.Create;
   mesh.LoadObj(inname);
@@ -173,25 +174,21 @@ begin
   end;
   msh := TSimplify.Create;
   setlength(msh.vertices, length(mesh.vertices));
-  for i := 0 to (length(mesh.vertices)-1) do begin
-    msh.vertices[i].p.X := mesh.vertices[i].X;
-    msh.vertices[i].p.Y := mesh.vertices[i].Y;
-    msh.vertices[i].p.Z := mesh.vertices[i].Z;
-  end;
+  for i := 0 to (length(mesh.vertices)-1) do
+    msh.vertices[i].p := mesh.vertices[i];
   setlength(msh.triangles, length(mesh.Faces));
   for i := 0 to (length(mesh.faces)-1) do begin
     msh.triangles[i].v[0] := mesh.faces[i].X;
     msh.triangles[i].v[1] := mesh.faces[i].Y;
     msh.triangles[i].v[2] := mesh.faces[i].Z;
   end;
+  {$IFDEF FPC} msec := GetTickCount64(); {$ELSE} msec := GetTickCount();{$ENDIF}
   msh.simplify_mesh(targetTri, agress);
-  printf(format('number of triangles reduced from %d to %d (%.3f)', [length(mesh.Faces), length(msh.triangles), length(msh.triangles)/length(mesh.Faces) ]));
+  {$IFDEF FPC} msec := GetTickCount64() - msec; {$ELSE} msec := GetTickCount() - msec; {$ENDIF}
+  printf(format('number of triangles reduced from %d to %d (%.3f, %.2fsec)', [length(mesh.Faces), length(msh.triangles), length(msh.triangles)/length(mesh.Faces),msec*0.001  ]));
   setlength(mesh.vertices, length(msh.vertices));
-  for i := 0 to (length(msh.vertices)-1) do begin
-    mesh.vertices[i].X := msh.vertices[i].p.X;
-    mesh.vertices[i].Y := msh.vertices[i].p.Y;
-    mesh.vertices[i].Z := msh.vertices[i].p.Z;
-  end;
+  for i := 0 to (length(msh.vertices)-1) do
+    mesh.vertices[i] := msh.vertices[i].p;
   setlength(mesh.Faces, length(msh.triangles));
   for i := 0 to (length(msh.triangles)-1) do begin
     mesh.faces[i].X := msh.triangles[i].v[0];
@@ -209,6 +206,7 @@ var
 	inname, outname: string;
 	ratio, agress: single;
 begin
+	printf('Mesh Simplification (C)2014 by Sven Forstmann, MIT License '+{$IFDEF CPU64}'64-bit'{$ELSE}'32-bit'{$ENDIF});
 	if ParamCount < 2 then begin
   		ShowHelp;
   		exit;
