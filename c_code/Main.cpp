@@ -2,8 +2,11 @@
 //  Loads a OBJ format mesh, decimates mesh, saves decimated mesh as OBJ format
 // http://voxels.blogspot.com/2014/05/quadric-mesh-simplification-with-source.html
 // https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification
-//To compile
+//To compile for Linux/OSX (GCC/LLVM)
 //  g++ Main.cpp -O3 -o simplify
+//To compile for Windows (Visual Studio)
+// vcvarsall amd64
+// cl /EHsc Main.cpp /osimplify
 //To execute
 //  ./simplify wall.obj out.obj 0.04
 
@@ -27,7 +30,7 @@ void showHelp(const char * argv[]) {
 } //showHelp()
 
 int main(int argc, const char * argv[]) {
-    printf("Mesh Simplification (C)2014 by Sven Forstmann in 2014, MIT License (%lu-bit)\n", sizeof(size_t)*8);
+    printf("Mesh Simplification (C)2014 by Sven Forstmann in 2014, MIT License (%zu-bit)\n", sizeof(size_t)*8);
     if (argc < 3) {
         showHelp(argv);
         return EXIT_SUCCESS;
@@ -54,16 +57,16 @@ int main(int argc, const char * argv[]) {
     	agressiveness = atof(argv[4]);
     }
 	clock_t start = clock();
-	printf("Input: %lu vertices, %lu triangles (target %d)\n", Simplify::vertices.size(), Simplify::triangles.size(), target_count);
+	printf("Input: %zu vertices, %zu triangles (target %d)\n", Simplify::vertices.size(), Simplify::triangles.size(), target_count);
 	int startSize = Simplify::triangles.size();
 	Simplify::simplify_mesh(target_count, agressiveness, true);
-	//Simplify::simplify_mesh_lossless( false);
+	Simplify::simplify_mesh_lossless( false);
 	if ( Simplify::triangles.size() >= startSize) {
 		printf("Unable to reduce mesh.\n");
     	return EXIT_FAILURE;
 	}
 	Simplify::write_obj(argv[2]);
-	printf("Output: %lu vertices, %lu triangles (%f reduction; %.4f sec)\n",Simplify::vertices.size(), Simplify::triangles.size()
+	printf("Output: %zu vertices, %zu triangles (%f reduction; %.4f sec)\n",Simplify::vertices.size(), Simplify::triangles.size()
 		, (float)Simplify::triangles.size()/ (float) startSize  , ((float)(clock()-start))/CLOCKS_PER_SEC );
 	return EXIT_SUCCESS;
 }

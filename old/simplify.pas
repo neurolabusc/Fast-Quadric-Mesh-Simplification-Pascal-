@@ -5,16 +5,43 @@ program simplify;
 // fpc -O3 -XX -Xs simplify.pas
 //On OSX to explicitly compile as 64-bit
 // ppcx64  -O3 -XX -Xs simplify.pas
-//With Delphi
-// >C:\PROGRA~2\BORLAND\DELPHI7\BIN\dcc32 -CC -B  simplify.pas
 //To execute
 // ./simplify bunny.obj out.obj 0.2
 
-{$IFDEF FPC}{$mode objfpc}{$H+}{$ENDIF}
-uses
- {$IFNDEF FPC} Windows, {$ENDIF}
- Classes, meshify_simplify_quadric, sysutils;
+{$mode objfpc}{$H+}
+uses meshify_simplify_quadric, Classes, sysutils;
 
+  type
+
+ TPoint3i = packed record
+    X: longint;
+    Y: longint;
+    Z: longint;
+  end;
+
+  TMesh = class
+    faces : array of TPoint3i;
+    vertices: array of Tvec3f;
+  private
+
+  public
+    procedure Close;
+    constructor Create;
+    procedure LoadObj(const FileName: string);
+    procedure SaveObj(const FileName: string);
+  end;
+
+constructor TMesh.Create;
+begin
+     setlength(faces,0);
+     setlength(vertices,0);
+end;
+
+procedure TMesh.Close;
+begin
+  setlength(faces, 0);
+  setlength(vertices, 0);
+end; // Close()
 
 function FSize (lFName: String): longint;
 var F : File Of byte;
@@ -27,7 +54,7 @@ begin
   Close (F);
 end;
 
-procedure LoadObj(const FileName: string; var faces: TFaces; var vertices: TVertices);
+procedure TMesh.LoadObj(const FileName: string);
 //WaveFront Obj file used by Blender
 // https://en.wikipedia.org/wiki/Wavefront_.obj_file
 const
@@ -50,7 +77,7 @@ begin
      //load faces and vertices
      AssignFile(f, FileName);
      Reset(f);
-     {$IFDEF FPC}DefaultFormatSettings.DecimalSeparator := '.';{$ELSE}DecimalSeparator := '.';{$ENDIF}
+     DefaultFormatSettings.DecimalSeparator := '.';
      while not EOF(f) do begin
         readln(f,s);
         if length(s) < 7 then continue;
@@ -88,7 +115,7 @@ begin
      setlength(vertices, num_v);
 end; // LoadObj()
 
-procedure SaveObj(const FileName: string; var faces: TFaces; var vertices: TVertices);
+procedure TMesh.SaveObj(const FileName: string);
 //create WaveFront object file
 // https://en.wikipedia.org/wiki/Wavefront_.obj_file
 var
@@ -133,28 +160,45 @@ end;
 
 procedure DecimateMesh(inname, outname: string; ratio, agress: single);
 var
-  targetTri, startTri: integer;
-  faces: TFaces;
-  vertices: TVertices;
+  i, targetTri: integer;
+  mesh: TMesh;
+  msh: TSimplify;
   {$IFDEF FPC} msec: qWord; {$ELSE} msec: dWord; {$ENDIF}
 begin
-  LoadObj(inname, faces, vertices);
-  startTri := length(faces);
-  targetTri := round(length(faces) * ratio);
-  if (targetTri < 0) or (length(faces) < 1) or (length(vertices) < 3) then begin
+  mesh := TMesh.Create;
+  mesh.LoadObj(inname);
+  targetTri := round(length(mesh.faces) * ratio);
+  if (targetTri < 0) or (length(mesh.faces) < 1) or (length(mesh.vertices) < 3) then begin
      printf('You need to load a mesh (File/Open) before you can simplify a mesh');
      exit;
   end;
   {$IFDEF FPC} msec := GetTickCount64(); {$ELSE} msec := GetTickCount();{$ENDIF}
-  simplify_mesh(faces, vertices, targetTri, agress);
+  msh := TSimplify.Create;
+  setlength(msh.vertices, length(mesh.vertices));
+  for i := 0 to (length(mesh.vertices)-1) do
+    msh.vertices[i].p := mesh.vertices[i];
+  setlength(msh.triangles, length(mesh.Faces));
+  for i := 0 to (length(mesh.faces)-1) do begin
+    msh.triangles[i].v[0] := mesh.faces[i].X;
+    msh.triangles[i].v[1] := mesh.faces[i].Y;
+    msh.triangles[i].v[2] := mesh.faces[i].Z;
+  end;
+  msh.simplify_mesh(targetTri, agress);
+  setlength(mesh.vertices, length(msh.vertices));
+  for i := 0 to (length(msh.vertices)-1) do
+    mesh.vertices[i] := msh.vertices[i].p;
+  setlength(mesh.Faces, length(msh.triangles));
+  for i := 0 to (length(msh.triangles)-1) do begin
+    mesh.faces[i].X := msh.triangles[i].v[0];
+    mesh.faces[i].Y := msh.triangles[i].v[1];
+    mesh.faces[i].Z := msh.triangles[i].v[2];
+  end;
+  msh.Free;
   {$IFDEF FPC} msec := GetTickCount64() - msec; {$ELSE} msec := GetTickCount() - msec; {$ENDIF}
-  printf(format(' number of triangles reduced from %d to %d (%.3f, %.2fsec)', [startTri, length(Faces), length(Faces)/startTri, msec*0.001  ]));
-  //printf(format('number of triangles reduced from %d to %d', [length(startTri), length(Faces), msec*0.001  ]));
-
+  printf(format('number of triangles reduced from %d to %d (%.3f, %.2fsec)', [length(mesh.Faces), length(msh.triangles), length(msh.triangles)/length(mesh.Faces),msec*0.001  ]));
   if length(outname) > 0 then
-     SaveObj(outname, faces, vertices);
-  setlength(faces,0);
-  setlength(vertices,0);
+     mesh.SaveObj(outname);
+  mesh.Free;
 end;
 
 procedure ParseCmds;

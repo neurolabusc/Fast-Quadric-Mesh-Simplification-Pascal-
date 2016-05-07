@@ -17,16 +17,17 @@ This code is embedded into the [Surf Ice](https://www.nitrc.org/plugins/mwiki/in
 
 
 #####  A simple command line demo
-
 While this algorithm is embedded into Surf Ice, that is a complex program. This GitHub page includes a basic command line program that allows the user to load a obj format mesh, decimate the mesh and save the result to disk. This should help Delphi, Lazarus or FreePascal developers who want to exploit this algorithm. You will need to have the freepascal compiler installed.
 
- - To compile the program "fpc -O3 -XX -Xs simplify.pas"
+ - To compile the program with FreePascal "fpc -O3 -XX -Xs simplify.pas" (though to enforce a 64-bit version you could run ppcx64 -O3 -XX -Xs simplify.pas").
+ - To compile the program with Delphi 7 "dcc32 -CC -B  simplify.pas".
  - Once compiled, you can run the program with a command like this "./simplify bunny.obj out.obj 0.2", which should produce a new mesh with 20% of the faces found in the original.
 
 
 ##### Versions
 
  - 5-May-2016 : Initial release
+ - 7-May-2016 : Delphi compatibility, faster FPC (using inlining)
 
 ##### License
 
