@@ -12,7 +12,7 @@ program simplify;
 
 {$IFDEF FPC}{$mode objfpc}{$H+}{$ENDIF}
 uses
- {$IFNDEF FPC} Windows, {$ENDIF}
+ {$IFDEF FPC} DateUtils, {$ELSE} Windows, {$ENDIF}
  Classes, meshify_simplify_quadric, sysutils;
 
 
@@ -136,7 +136,7 @@ var
   targetTri, startTri: integer;
   faces: TFaces;
   vertices: TVertices;
-  {$IFDEF FPC} msec: qWord; {$ELSE} msec: dWord; {$ENDIF}
+  {$IFDEF FPC} msec: Int64; tic :TDateTime; {$ELSE} msec: dWord; {$ENDIF}
 begin
   LoadObj(inname, faces, vertices);
   startTri := length(faces);
@@ -145,9 +145,9 @@ begin
      printf('You need to load a mesh (File/Open) before you can simplify a mesh');
      exit;
   end;
-  {$IFDEF FPC} msec := GetTickCount64(); {$ELSE} msec := GetTickCount();{$ENDIF}
+  {$IFDEF FPC} tic := Now(); {$ELSE} msec := GetTickCount();{$ENDIF}
   simplify_mesh(faces, vertices, targetTri, agress);
-  {$IFDEF FPC} msec := GetTickCount64() - msec; {$ELSE} msec := GetTickCount() - msec; {$ENDIF}
+  {$IFDEF FPC} msec := MilliSecondsBetween(Now(),tic); {$ELSE} msec := GetTickCount() - msec; {$ENDIF}
   printf(format(' number of triangles reduced from %d to %d (%.3f, %.2fsec)', [startTri, length(Faces), length(Faces)/startTri, msec*0.001  ]));
   //printf(format('number of triangles reduced from %d to %d', [length(startTri), length(Faces), msec*0.001  ]));
 

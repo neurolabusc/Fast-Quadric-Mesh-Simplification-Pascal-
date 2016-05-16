@@ -1,5 +1,5 @@
 unit meshify_simplify_quadric;
-{$IFDEF FPC}{$mode objfpc}{$H+}{$ENDIF}
+{$mode objfpc}{$H+}
 interface
 //Mesh Simplification Unit
 // (C) by Sven Forstmann in 2014
@@ -26,7 +26,7 @@ Type
  TFaces = array of TPoint3i; //n.b. Triangle indexed from zero, so face composed of first three vertices is [0,1,2]
  TVertices = array of TPoint3f;
 
-procedure simplify_mesh(var faces : TFaces; var verts: TVertices; target_count: integer; agressiveness : double=7);
+procedure simplify_mesh(var faces : TFaces; var verts: TVertices; target_count: integer; agressiveness : double=7; resize: boolean=true);
 
 implementation
 
@@ -44,15 +44,15 @@ type
   TTriangle = record
 	  v: array[0..2] of integer;
 	  err: array[0..3] of TFloat;
-	  n: TPoint3f;
 	  dirty, deleted: boolean;
+	  n: TPoint3f;
   end;
   TBools = array of boolean;
   TVs = array of TVertex;
   TTs = array of TTriangle;
   TRs = array of TRef;
 
-function symMat(c: TFloat): TSymetricMatrix; {$IFDEF FPC}inline;{$ENDIF} overload;
+function symMat(c: TFloat): TSymetricMatrix;  inline;  overload;
 var
 	i: integer;
 begin
@@ -60,7 +60,7 @@ begin
 		result[i] := c;
 end; // symMat()
 
-function symMat(a,b,c,d: TFloat): TSymetricMatrix; {$IFDEF FPC}inline;{$ENDIF} overload;
+function symMat(a,b,c,d: TFloat): TSymetricMatrix;  inline;  overload;
 begin
 	result[0] := a*a;  result[1] := a*b;  result[2] := a*c;  result[3] := a*d;
 	result[4] := b*b;  result[5] := b*c; result[6] := b*d;
@@ -68,7 +68,7 @@ begin
 	result[9] := d*d;
 end; // symMat()
 
-function symMat( m11, m12, m13, m14,  m22, m23, m24,  m33, m34, m44: TFloat): TSymetricMatrix; {$IFDEF FPC}inline;{$ENDIF} overload;
+function symMat( m11, m12, m13, m14,  m22, m23, m24,  m33, m34, m44: TFloat): TSymetricMatrix;  inline; overload;
 begin
 	result[0] := m11;  result[1] := m12;  result[2] := m13;  result[3] := m14;
 	result[4] := m22;  result[5] := m23;  result[6] := m24;
@@ -76,46 +76,46 @@ begin
 	result[9] := m44;
 end; // symMat()
 
-function symMatAdd(n,m: TSymetricMatrix): TSymetricMatrix; {$IFDEF FPC}inline;{$ENDIF}
+function symMatAdd(n,m: TSymetricMatrix): TSymetricMatrix; inline;
 begin
 	result := symMat(n[0]+m[0], n[1]+m[1], n[2]+m[2], n[3]+m[3], n[4]+m[4],
 		n[5]+m[5], n[6]+m[6], n[7]+m[7], n[8]+m[8], n[9]+m[9]);
 end; // symMatAdd()
 
-function symMatDet(m: TSymetricMatrix; a11, a12, a13, a21, a22, a23, a31, a32, a33: integer): TFloat; {$IFDEF FPC}inline;{$ENDIF}
+function symMatDet(m: TSymetricMatrix; a11, a12, a13, a21, a22, a23, a31, a32, a33: integer): TFloat; inline;
 begin
   result := m[a11]*m[a22]*m[a33] + m[a13]*m[a21]*m[a32] + m[a12]*m[a23]*m[a31]
 	     - m[a13]*m[a22]*m[a31] - m[a11]*m[a23]*m[a32]- m[a12]*m[a21]*m[a33];
 end; // symMatDet()
 
-function ptf(x,y,z: single):TPoint3f; {$IFDEF FPC}inline;{$ENDIF}
+function ptf(x,y,z: single):TPoint3f;
 begin
      result.x := x;
      result.y := y;
      result.z := z;
 end; // ptf()
 
-function vCross(v1, v2: TPoint3f): TPoint3f; {$IFDEF FPC}inline;{$ENDIF}
+function vCross(v1, v2: TPoint3f): TPoint3f; inline;
 begin
      result := ptf(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z,
      	v1.x * v2.y - v1.y * v2.x);
 end; // vCross()
 
-function vSum(a,b: TPoint3f): TPoint3f; {$IFDEF FPC}inline;{$ENDIF}
+function vSum(a,b: TPoint3f): TPoint3f; inline;
 begin
      result.X := a.X+b.X;
      result.Y := a.Y+b.Y;
      result.Z := a.Z+b.Z;
 end; // vSum()
 
-function vSubtract (a,b: TPoint3f): TPoint3f; {$IFDEF FPC}inline;{$ENDIF}
+function vSubtract (a,b: TPoint3f): TPoint3f; inline;
 begin
      result.X := A.X - B.X;
      result.Y := A.Y - B.Y;
      result.Z := A.Z - B.Z;
 end; // vSubtract()
 
-procedure vNormalize(var v: TPoint3f);  {$IFDEF FPC}inline;{$ENDIF}
+procedure vNormalize(var v: TPoint3f);  inline;
 var
    len: single;
 begin
@@ -126,12 +126,12 @@ begin
      v.Z := v.Z / len;
 end; // vNormalize()
 
-function vDot (A, B: TPoint3f): single; {$IFDEF FPC}inline;{$ENDIF}
+function vDot (A, B: TPoint3f): single; inline;
 begin  //dot product
      result := A.X*B.X + A.Y*B.Y + A.Z*B.Z;
 end; // vDot()
 
-function vMult(a: TPoint3f; v: TFloat):TPoint3f; {$IFDEF FPC}inline;{$ENDIF}
+function vMult(a: TPoint3f; v: TFloat):TPoint3f; inline;
 begin
      result.X := a.X*v;
      result.Y := a.Y*v;
@@ -139,14 +139,14 @@ begin
 end; // vMult()
 
 // Error between vertex and Quadric
-function vertex_error(q: TSymetricMatrix; x,y,z: TFloat): TFloat; {$IFDEF FPC}inline;{$ENDIF}
+function vertex_error(q: TSymetricMatrix; x,y,z: TFloat): TFloat; inline;
 begin
       result := q[0]*x*x + 2*q[1]*x*y + 2*q[2]*x*z + 2*q[3]*x + q[4]*y*y
            + 2*q[5]*y*z + 2*q[6]*y + q[7]*z*z + 2*q[8]*z + q[9];
 end; // vertex_error()
 
 // Error for one edge
-function calculate_error(id_v1, id_v2: integer; var p_result: TPoint3f; var vertices: TVs): TFloat; {$IFDEF FPC}inline;{$ENDIF}
+function calculate_error(id_v1, id_v2: integer; var p_result: TPoint3f; var vertices: TVs): TFloat; inline;
 var
   q : TSymetricMatrix;
   border: integer;
@@ -156,6 +156,7 @@ begin
   // compute interpolated vertex
   q := symMatAdd(vertices[id_v1].q, vertices[id_v2].q);
   border := vertices[id_v1].border + vertices[id_v2].border;
+  error := 0;
   det := symMatDet(q, 0, 1, 2, 1, 4, 5, 2, 5, 7);
   if ( det <> 0) and ( border = 0) then begin
     // q_delta is invertible
@@ -320,12 +321,13 @@ begin
 	setlength(vertices, dst);
 end; // compact_mesh()
 
-function flipped(p: TPoint3f; i1: integer; var v0: TVertex; var deleted: TBools; var triangles: TTs;  var vertices: TVs; var refs :TRs): boolean; {$IFDEF FPC}inline;{$ENDIF}
+function flipped(p: TPoint3f; i1: integer; var v0: TVertex; var deleted: TBools; var triangles: TTs;  var vertices: TVs; var refs :TRs): boolean; inline;
 var
-   k, s, id1, id2: integer;
+   k, bordercount, s, id1, id2: integer;
    t: ^Ttriangle;
    n, d1, d2: TPoint3f;
 begin
+	bordercount := 0;
 	result := true;
 	for k := 0 to (v0.tcount -1) do begin
 		t := @triangles[refs[v0.tstart+k].tid];
@@ -334,7 +336,7 @@ begin
 		id1 := t^.v[(s+1) mod 3];
 		id2 := t^.v[(s+2) mod 3];
 	 	if(id1=i1) or (id2=i1) then begin// delete ?
-			//bordercount := bordercount + 1;
+			bordercount := bordercount + 1;
 			deleted[k] := true;
 			continue;
 		end;
@@ -353,7 +355,7 @@ begin
 	result := false;
 end; // flipped()
 
-procedure update_triangles(i0: integer; var v: TVertex; var deleted :TBools; var deleted_triangles: integer; var triangles: TTs;  var vertices: TVs; var refs :TRs; var nrefs: integer); {$IFDEF FPC}inline;{$ENDIF}
+procedure update_triangles(i0: integer; var v: TVertex; var deleted :TBools; var deleted_triangles: integer; var triangles: TTs;  var vertices: TVs; var refs :TRs; var nrefs: integer); inline;
 const
   kBlockSz = 4096; //re-allocate memory in chunks
 var
@@ -388,7 +390,40 @@ begin
   end;
 end; // update_triangles()
 
-procedure simplify_mesh(var faces : TFaces; var verts: TVertices; target_count: integer; agressiveness : double=7);
+procedure scale_mesh(var verts: TVertices; scale: TFloat);
+var
+   i: integer;
+begin
+  if scale = 1.0 then exit;
+  for i := 0 to high(verts) do
+      verts[i] := vMult(verts[i], scale);
+end;
+
+function normalize_mesh(var verts: TVertices): TFloat;
+//make largest dimension have size of 1. Provides reasonable threshold
+var
+   i: integer;
+   mn, mx: TPoint3f;
+   invert : TFloat;
+begin
+  mn := verts[0];
+  mx := mn;
+  for i := 0 to high(verts) do begin
+      if (verts[i].X < mn.X) then mn.X := verts[i].X;
+      if (verts[i].Y < mn.Y) then mn.Y := verts[i].Y;
+      if (verts[i].Z < mn.Z) then mn.Z := verts[i].Z;
+      if (verts[i].X > mx.X) then mx.X := verts[i].X;
+      if (verts[i].Y > mx.Y) then mx.Y := verts[i].Y;
+      if (verts[i].Z > mx.Z) then mx.Z := verts[i].Z;
+  end;
+  result := max(max(mx.X-mn.X, mx.Y-mn.Y), mx.Z - mn.Z);
+  if (result = 0) or (result = 1.0) then exit;
+  invert := 1.0/result;
+  for i := 0 to high(verts) do
+      verts[i] := vMult(verts[i], invert);
+end;
+
+procedure simplify_mesh(var faces : TFaces; var verts: TVertices; target_count: integer; agressiveness : double=7; resize: boolean=true);
 var
   vertices : TVs;
   triangles : TTs;
@@ -400,8 +435,11 @@ var
   p: TPoint3f;
   refs : TRs;
   nrefs: integer;
+  scale: TFloat = 1.0;
 begin
   if (length(faces) < 5) or (length(verts) < 5) or (target_count < 4) or (target_count > length(faces)) then exit;
+  if resize then
+     scale := normalize_mesh(verts);
   //convert simple mesh to verbose structure that allows us to represent quadric properties
   setlength(triangles, length(Faces));
   setlength(vertices, length(Verts));
@@ -426,7 +464,7 @@ begin
 		//printf("iteration %d - triangles %d\n",iteration,triangle_count-deleted_triangles);
 		if(triangle_count-deleted_triangles<=target_count) then break;
 		// update mesh once in a while
-		if((iteration mod 5) =0) then
+		if(iteration mod 5 =0) then
 		  update_mesh(iteration, triangles, vertices, refs, nrefs);
 		// clear dirty flag
 		for i := 0 to high(triangles) do
@@ -434,7 +472,7 @@ begin
 		// All triangles with edges below the threshold will be removed
 		// The following numbers works well for most models.
 		// If it does not, try to adjust the 3 parameters
-		threshold := 0.000000001*power((iteration+3),agressiveness);
+		threshold := 0.000000001*power(TFloat(iteration+3),agressiveness);
 		// remove vertices & mark deleted triangles
 		for i := 0 to high(triangles) do begin
 			t := @triangles[i];
@@ -448,14 +486,14 @@ begin
 					i1 := t^.v[(j+1) mod 3];
 					v1 := @vertices[i1];
 					// Border check
-					if (v0^.border <> v1^.border) then continue;
+					if(v0^.border <> v1^.border) then continue;
 					// Compute vertex to collapse to
 					calculate_error(i0,i1,p, vertices);
 					setlength(deleted0, v0^.tcount);
 					setlength(deleted1, v1^.tcount);
 					// dont remove if flipped
-					if flipped(p,i1,v0^,deleted0, triangles, vertices, refs) then continue;
-					if flipped(p,i0,v1^,deleted1, triangles, vertices, refs) then continue;
+					if( flipped(p,i1,v0^,deleted0, triangles, vertices, refs) ) then continue;
+					if( flipped(p,i0,v1^,deleted1, triangles, vertices, refs) ) then continue;
 					// not flipped, so remove edge
 					v0^.p := p;
 					v0^.q := symMatAdd(v1^.q, v0^.q);
@@ -488,6 +526,8 @@ begin
     end;
     for i := 0 to high(verts) do
       verts[i] := vertices[i].p;
+    if resize then
+       scale_mesh(verts, scale);
 end; // simplify_mesh()
 
 end.

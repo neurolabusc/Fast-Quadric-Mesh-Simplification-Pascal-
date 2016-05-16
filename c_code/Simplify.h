@@ -297,6 +297,42 @@ namespace Simplify
 	void update_triangles(int i0,Vertex &v,std::vector<int> &deleted,int &deleted_triangles);
 	void update_mesh(int iteration);
 	void compact_mesh();
+
+	void scale_mesh(double scale)
+	{
+		if ((scale == 0.0) || (scale == 1.0)) return;
+  		loopi(0,vertices.size())
+  			{
+  				vec3f &p=vertices[i].p;
+  				p = p * scale;
+  		}
+
+	}
+	double normalize_mesh()
+	{
+		vec3f mn = vertices[0].p;
+		vec3f mx = mn;
+		loopi(0,vertices.size())
+			{
+				vec3f &p=vertices[i].p;
+				if (p.x < mn.x) mn.x = p.x;
+				if (p.y < mn.y) mn.y = p.y;
+				if (p.z < mn.z) mn.z = p.z;
+				if (p.x > mx.x) mx.x = p.x;
+				if (p.y > mx.y) mx.y = p.y;
+				if (p.z > mx.z) mx.z = p.z;
+			}
+		double scale = fmax(fmax(mx.x-mn.x, mx.y-mn.y), mx.z-mn.z);
+		if ((scale == 1.0) || (scale == 0.0)) return 1.0;
+		double invert = 1.0/scale;
+  		loopi(0,vertices.size())
+  			{
+  				vec3f &p=vertices[i].p;
+  				p = p * invert;
+  		}
+  		//printf("Temporarily rescaled by a factor of %g\n", scale);
+		return scale;
+	}
 	//
 	// Main simplification function
 	//
@@ -304,10 +340,17 @@ namespace Simplify
 	// agressiveness : sharpness to increase the threashold.
 	//                 5..8 are good numbers
 	//                 more iterations yield higher quality
-	//
+	// verbose       : print comments
+	// resize        : scale to unit size before decimation, rescale to original size after (helps threshold)
 
-	void simplify_mesh(int target_count, double agressiveness=7, bool verbose=false)
+
+	void simplify_mesh(int target_count, double agressiveness=7, bool verbose=false, bool resize=true)
 	{
+		// scale object so maximum dimension is 1.0 (normalized size improves thresholding)
+		double scale = 1.0;
+		if (resize)
+			scale = normalize_mesh();
+
 		// init
 		loopi(0,triangles.size()) triangles[i].deleted=0;
 
@@ -398,6 +441,8 @@ namespace Simplify
 		}
 		// clean up mesh
 		compact_mesh();
+		if (resize)
+			scale_mesh(scale);
 	} //simplify_mesh()
 
 	void simplify_mesh_lossless(bool verbose=false)
