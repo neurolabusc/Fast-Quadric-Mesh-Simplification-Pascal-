@@ -245,7 +245,8 @@ begin
 		vertices[i].tcount := 0;
 	end;
 	// Write References
-	setlength(refs, length(triangles) * 3);
+	// setlength(refs, length(triangles) * 3); //initial size, replicates C code
+	setlength(refs, length(triangles) * 6); //Pascal setlength() is expensive, so set larger than initially required to reduce re-allocation
 	nrefs := length(refs);
 	for i := 0 to high(triangles) do begin
 		t := @triangles[i];
@@ -357,7 +358,7 @@ end; // flipped()
 
 procedure update_triangles(i0: integer; var v: TVertex; var deleted :TBools; var deleted_triangles: integer; var triangles: TTs;  var vertices: TVs; var refs :TRs; var nrefs: integer); inline;
 const
-  kBlockSz = 4096; //re-allocate memory in chunks
+  kBlockSz = 64000; //re-allocate memory in chunks
 var
    p: TPoint3f;
    k: integer;

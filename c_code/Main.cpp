@@ -60,7 +60,7 @@ int main(int argc, const char * argv[]) {
 	printf("Input: %zu vertices, %zu triangles (target %d)\n", Simplify::vertices.size(), Simplify::triangles.size(), target_count);
 	int startSize = Simplify::triangles.size();
 	Simplify::simplify_mesh(target_count, agressiveness, true);
-	Simplify::simplify_mesh_lossless( false);
+	Simplify::simplify_mesh_lossless(false);
 	if ( Simplify::triangles.size() >= startSize) {
 		printf("Unable to reduce mesh.\n");
     	return EXIT_FAILURE;

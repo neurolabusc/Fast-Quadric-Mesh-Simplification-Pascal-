@@ -29,6 +29,7 @@ While this algorithm is embedded into Surf Ice, that is a complex program. This 
  - 5-May-2016 : Initial release
  - 7-May-2016 : Delphi compatibility, faster FPC (using inlining)
  - 9-May-2016 : Meshes scaled to size 1 prior to decimation and then returned to original size (matches assumptions of threshold).
+ - 20-May-2016 : Faster, fewer calls to setlength
 
 ##### License
 
