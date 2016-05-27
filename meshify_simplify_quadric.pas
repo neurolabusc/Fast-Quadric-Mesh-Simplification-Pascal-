@@ -156,7 +156,6 @@ begin
   // compute interpolated vertex
   q := symMatAdd(vertices[id_v1].q, vertices[id_v2].q);
   border := vertices[id_v1].border + vertices[id_v2].border;
-  error := 0;
   det := symMatDet(q, 0, 1, 2, 1, 4, 5, 2, 5, 7);
   if ( det <> 0) and ( border = 0) then begin
     // q_delta is invertible
@@ -324,11 +323,10 @@ end; // compact_mesh()
 
 function flipped(p: TPoint3f; i1: integer; var v0: TVertex; var deleted: TBools; var triangles: TTs;  var vertices: TVs; var refs :TRs): boolean; {$IFDEF FPC}inline;{$ENDIF}
 var
-   k, bordercount, s, id1, id2: integer;
+   k, s, id1, id2: integer;
    t: ^Ttriangle;
    n, d1, d2: TPoint3f;
 begin
-	bordercount := 0;
 	result := true;
 	for k := 0 to (v0.tcount -1) do begin
 		t := @triangles[refs[v0.tstart+k].tid];
@@ -337,7 +335,6 @@ begin
 		id1 := t^.v[(s+1) mod 3];
 		id2 := t^.v[(s+2) mod 3];
 	 	if(id1=i1) or (id2=i1) then begin// delete ?
-			bordercount := bordercount + 1;
 			deleted[k] := true;
 			continue;
 		end;
@@ -430,15 +427,15 @@ var
   triangles : TTs;
   iteration, i, j, deleted_triangles, triangle_count, i0, i1, tstart, tcount: integer;
   deleted0,deleted1: TBools;
-  threshold: TFloat;
+  threshold,scale: TFloat;
   t: ^TTriangle;
   v0, v1: ^TVertex;
   p: TPoint3f;
   refs : TRs;
   nrefs: integer;
-  scale: TFloat = 1.0;
 begin
   if (length(faces) < 5) or (length(verts) < 5) or (target_count < 4) or (target_count > length(faces)) then exit;
+  scale := 1.0;
   if resize then
      scale := normalize_mesh(verts);
   //convert simple mesh to verbose structure that allows us to represent quadric properties
@@ -473,7 +470,7 @@ begin
 		// All triangles with edges below the threshold will be removed
 		// The following numbers works well for most models.
 		// If it does not, try to adjust the 3 parameters
-		threshold := 0.000000001*power(TFloat(iteration+3),agressiveness);
+		threshold := 0.000000001*power(iteration+3,agressiveness);
 		// remove vertices & mark deleted triangles
 		for i := 0 to high(triangles) do begin
 			t := @triangles[i];
