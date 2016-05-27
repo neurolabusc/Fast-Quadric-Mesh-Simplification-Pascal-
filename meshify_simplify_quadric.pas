@@ -1,5 +1,5 @@
 unit meshify_simplify_quadric;
-{$mode objfpc}{$H+}
+{$IFDEF FPC}{$mode objfpc}{$H+}{$ENDIF}
 interface
 //Mesh Simplification Unit
 // (C) by Sven Forstmann in 2014
@@ -52,7 +52,7 @@ type
   TTs = array of TTriangle;
   TRs = array of TRef;
 
-function symMat(c: TFloat): TSymetricMatrix;  inline;  overload;
+function symMat(c: TFloat): TSymetricMatrix;  {$IFDEF FPC}inline;{$ENDIF}  overload;
 var
 	i: integer;
 begin
@@ -60,7 +60,7 @@ begin
 		result[i] := c;
 end; // symMat()
 
-function symMat(a,b,c,d: TFloat): TSymetricMatrix;  inline;  overload;
+function symMat(a,b,c,d: TFloat): TSymetricMatrix;  {$IFDEF FPC}inline;{$ENDIF}  overload;
 begin
 	result[0] := a*a;  result[1] := a*b;  result[2] := a*c;  result[3] := a*d;
 	result[4] := b*b;  result[5] := b*c; result[6] := b*d;
@@ -68,7 +68,7 @@ begin
 	result[9] := d*d;
 end; // symMat()
 
-function symMat( m11, m12, m13, m14,  m22, m23, m24,  m33, m34, m44: TFloat): TSymetricMatrix;  inline; overload;
+function symMat( m11, m12, m13, m14,  m22, m23, m24,  m33, m34, m44: TFloat): TSymetricMatrix;  {$IFDEF FPC}inline;{$ENDIF} overload;
 begin
 	result[0] := m11;  result[1] := m12;  result[2] := m13;  result[3] := m14;
 	result[4] := m22;  result[5] := m23;  result[6] := m24;
@@ -76,13 +76,13 @@ begin
 	result[9] := m44;
 end; // symMat()
 
-function symMatAdd(n,m: TSymetricMatrix): TSymetricMatrix; inline;
+function symMatAdd(n,m: TSymetricMatrix): TSymetricMatrix; {$IFDEF FPC}inline;{$ENDIF}
 begin
 	result := symMat(n[0]+m[0], n[1]+m[1], n[2]+m[2], n[3]+m[3], n[4]+m[4],
 		n[5]+m[5], n[6]+m[6], n[7]+m[7], n[8]+m[8], n[9]+m[9]);
 end; // symMatAdd()
 
-function symMatDet(m: TSymetricMatrix; a11, a12, a13, a21, a22, a23, a31, a32, a33: integer): TFloat; inline;
+function symMatDet(m: TSymetricMatrix; a11, a12, a13, a21, a22, a23, a31, a32, a33: integer): TFloat; {$IFDEF FPC}inline;{$ENDIF}
 begin
   result := m[a11]*m[a22]*m[a33] + m[a13]*m[a21]*m[a32] + m[a12]*m[a23]*m[a31]
 	     - m[a13]*m[a22]*m[a31] - m[a11]*m[a23]*m[a32]- m[a12]*m[a21]*m[a33];
@@ -95,27 +95,27 @@ begin
      result.z := z;
 end; // ptf()
 
-function vCross(v1, v2: TPoint3f): TPoint3f; inline;
+function vCross(v1, v2: TPoint3f): TPoint3f; {$IFDEF FPC}inline;{$ENDIF}
 begin
      result := ptf(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z,
      	v1.x * v2.y - v1.y * v2.x);
 end; // vCross()
 
-function vSum(a,b: TPoint3f): TPoint3f; inline;
+function vSum(a,b: TPoint3f): TPoint3f; {$IFDEF FPC}inline;{$ENDIF}
 begin
      result.X := a.X+b.X;
      result.Y := a.Y+b.Y;
      result.Z := a.Z+b.Z;
 end; // vSum()
 
-function vSubtract (a,b: TPoint3f): TPoint3f; inline;
+function vSubtract (a,b: TPoint3f): TPoint3f; {$IFDEF FPC}inline;{$ENDIF}
 begin
      result.X := A.X - B.X;
      result.Y := A.Y - B.Y;
      result.Z := A.Z - B.Z;
 end; // vSubtract()
 
-procedure vNormalize(var v: TPoint3f);  inline;
+procedure vNormalize(var v: TPoint3f);  {$IFDEF FPC}inline;{$ENDIF}
 var
    len: single;
 begin
@@ -126,12 +126,12 @@ begin
      v.Z := v.Z / len;
 end; // vNormalize()
 
-function vDot (A, B: TPoint3f): single; inline;
+function vDot (A, B: TPoint3f): single; {$IFDEF FPC}inline;{$ENDIF}
 begin  //dot product
      result := A.X*B.X + A.Y*B.Y + A.Z*B.Z;
 end; // vDot()
 
-function vMult(a: TPoint3f; v: TFloat):TPoint3f; inline;
+function vMult(a: TPoint3f; v: TFloat):TPoint3f; {$IFDEF FPC}inline;{$ENDIF}
 begin
      result.X := a.X*v;
      result.Y := a.Y*v;
@@ -139,14 +139,14 @@ begin
 end; // vMult()
 
 // Error between vertex and Quadric
-function vertex_error(q: TSymetricMatrix; x,y,z: TFloat): TFloat; inline;
+function vertex_error(q: TSymetricMatrix; x,y,z: TFloat): TFloat; {$IFDEF FPC}inline;{$ENDIF}
 begin
       result := q[0]*x*x + 2*q[1]*x*y + 2*q[2]*x*z + 2*q[3]*x + q[4]*y*y
            + 2*q[5]*y*z + 2*q[6]*y + q[7]*z*z + 2*q[8]*z + q[9];
 end; // vertex_error()
 
 // Error for one edge
-function calculate_error(id_v1, id_v2: integer; var p_result: TPoint3f; var vertices: TVs): TFloat; inline;
+function calculate_error(id_v1, id_v2: integer; var p_result: TPoint3f; var vertices: TVs): TFloat; {$IFDEF FPC}inline;{$ENDIF}
 var
   q : TSymetricMatrix;
   border: integer;
@@ -322,7 +322,7 @@ begin
 	setlength(vertices, dst);
 end; // compact_mesh()
 
-function flipped(p: TPoint3f; i1: integer; var v0: TVertex; var deleted: TBools; var triangles: TTs;  var vertices: TVs; var refs :TRs): boolean; inline;
+function flipped(p: TPoint3f; i1: integer; var v0: TVertex; var deleted: TBools; var triangles: TTs;  var vertices: TVs; var refs :TRs): boolean; {$IFDEF FPC}inline;{$ENDIF}
 var
    k, bordercount, s, id1, id2: integer;
    t: ^Ttriangle;
@@ -356,9 +356,9 @@ begin
 	result := false;
 end; // flipped()
 
-procedure update_triangles(i0: integer; var v: TVertex; var deleted :TBools; var deleted_triangles: integer; var triangles: TTs;  var vertices: TVs; var refs :TRs; var nrefs: integer); inline;
+procedure update_triangles(i0: integer; var v: TVertex; var deleted :TBools; var deleted_triangles: integer; var triangles: TTs;  var vertices: TVs; var refs :TRs; var nrefs: integer); {$IFDEF FPC}inline;{$ENDIF}
 const
-  kBlockSz = 64000; //re-allocate memory in chunks
+  kBlockSz = 64000; //re-allocate memory in chunks - in future to accelerate perhaps use ReAllocMem instead of SetLength
 var
    p: TPoint3f;
    k: integer;
