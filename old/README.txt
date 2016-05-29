@@ -1,1 +1,0 @@
-This older version exposes the mesh simplification routines as a class rather than a procedure. It is slightly slower, mainly because it does not use function inlining.
