@@ -8,5 +8,7 @@ strip ./simplify
 rm  -r *.o
 rm  -r *.ppu
 rm -r *.bak
+rm -rf lib
+rm gui
 
 

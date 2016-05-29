@@ -16,13 +16,18 @@ This code is embedded into the [Surf Ice](https://www.nitrc.org/plugins/mwiki/in
 ![img](https://raw.githubusercontent.com/neurolabusc/Fast-Quadric-Mesh-Simplification-Pascal-/master/screenshot.jpg?raw=true)
 
 
-#####  A simple command line demo
+#####  A simple command line demo (Delphi or FreePascal)
 While this algorithm is embedded into Surf Ice, that is a complex program. This GitHub page includes a basic command line program that allows the user to load a obj format mesh, decimate the mesh and save the result to disk. This should help Delphi, Lazarus or FreePascal developers who want to exploit this algorithm. You will need to have the freepascal compiler installed.
 
  - To compile the program with FreePascal "fpc -O3 -XX -Xs simplify.pas" (though to enforce a 64-bit version you could run ppcx64 -O3 -XX -Xs simplify.pas").
  - To compile the program with Delphi 7 "dcc32 -CC -B  simplify.pas".
  - Once compiled, you can run the program with a command like this "./simplify bunny.obj out.obj 0.2", which should produce a new mesh with 20% of the faces found in the original.
 
+#####  Lazarus graphical user interface
+Lazarus can compile the project "gui.lpi" to be a native executable for OSX, Windows or Linux. Launch Lazarus, choose File/Open and select the gui.lpi file and then choose the Run/Run menu item.
+
+#####  Delphi graphical user interface
+Delphi can compile the project "guidelphi.dpr". Launch Delphi, choose File/Open and select the gui_delphi.dpr file and then choose the Run/Run menu item. The provided project was created in Delphi 7, but should support more recent versions.
 
 ##### Versions
 
@@ -30,6 +35,7 @@ While this algorithm is embedded into Surf Ice, that is a complex program. This 
  - 7-May-2016 : Delphi compatibility, faster FPC (using inlining)
  - 9-May-2016 : Meshes scaled to size 1 prior to decimation and then returned to original size (matches assumptions of threshold).
  - 20-May-2016 : Faster, fewer calls to setlength
+ - 29-May-2016 : Added graphical user interface versions for Delphi and Lazarus
 
 ##### License
 
