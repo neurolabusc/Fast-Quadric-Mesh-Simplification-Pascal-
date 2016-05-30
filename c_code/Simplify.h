@@ -570,7 +570,7 @@ namespace Simplify
 		vec3f p;
 		loopk(0,v.tcount)
 		{
-			Ref &r=refs[v.tstart+k];
+			Ref r=refs[v.tstart+k];
 			Triangle &t=triangles[r.tid];
 			if(t.deleted)continue;
 			if(deleted[k])
@@ -654,7 +654,6 @@ namespace Simplify
 			tstart+=v.tcount;
 			v.tcount=0;
 		}
-
 		// Write References
 		refs.resize(triangles.size()*3);
 		loopi(0,triangles.size())

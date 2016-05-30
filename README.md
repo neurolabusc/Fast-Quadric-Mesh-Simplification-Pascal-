@@ -29,6 +29,9 @@ Lazarus can compile the project "gui.lpi" to be a native executable for OSX, Win
 #####  Delphi graphical user interface
 Delphi can compile the project "guidelphi.dpr". Launch Delphi, choose File/Open and select the gui_delphi.dpr file and then choose the Run/Run menu item. The provided project was created in Delphi 7, but should support more recent versions.
 
+##### Performance
+In general, this is an extremely fast algorithm, and will reduce the level of detail for typically meshes with interactive speeds. However, any mesh simplification method will tend to slow down with more complex meshes and for more complete decimation (e.g. reducing a mesh 99% will take much longer than a 50% reduction). This software reduces a very complex 1.4 millions face mesh into a mesh with just 14 thousand (99% reduction) in 8 seconds on a 2.6GHz Haswell CPU. The C code compiled with LLVM 7.3 takes 2.6 seconds. In contrast, Matlab's [high-performance but proprietary reducepatch routine](http://www.alecjacobson.com/weblog/?p=4444) requires 12.4 seconds.
+
 ##### Versions
 
  - 5-May-2016 : Initial release
