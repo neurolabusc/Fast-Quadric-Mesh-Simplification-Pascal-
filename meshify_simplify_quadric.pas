@@ -146,6 +146,29 @@ begin
 end; // vertex_error()
 
 // Error for one edge
+//{$DEFINE DECIMATE} //if DECIMATE is defined vertex positions are NOT interpolated
+// Luebke Survey of Polygonal Simplification Algorithms:  "vertices of a model simplified by the decimation algorithm are a subset of the original model’s vertices."
+//  http://www.cs.virginia.edu/~luebke/publications/pdf/cg+a.2001.pdf
+{$IFDEF DECIMATE}
+function calculate_error(id_v1, id_v2: integer; var p_result: TPoint3f; var vertices: TVs): TFloat; inline;
+var
+  q : TSymetricMatrix;
+  border: integer;
+  error1,error2, det: TFloat;
+  p1, p2: TPoint3f;
+begin
+  // compute interpolated vertex
+  q := symMatAdd(vertices[id_v1].q, vertices[id_v2].q);
+  border := vertices[id_v1].border + vertices[id_v2].border;
+    p1 := vertices[id_v1].p;
+    p2 := vertices[id_v2].p;
+    error1 := vertex_error(q, p1.x,p1.y,p1.z);
+    error2 := vertex_error(q, p2.x,p2.y,p2.z);
+    result := min(error1, error2);
+    if (error1 = result) then p_result := p1;
+    if (error2 = result) then p_result := p2;
+end; // calculate_error()
+{$ELSE}
 function calculate_error(id_v1, id_v2: integer; var p_result: TPoint3f; var vertices: TVs): TFloat; {$IFDEF FPC}inline;{$ENDIF}
 var
   q : TSymetricMatrix;
@@ -178,6 +201,7 @@ begin
   end;
   result := error;
 end; // calculate_error()
+{$ENDIF}
 
 procedure update_mesh(iteration: integer; var triangles: TTs;  var vertices: TVs; var refs :TRs; var nrefs: integer);
 var
@@ -474,9 +498,7 @@ begin
 		// remove vertices & mark deleted triangles
 		for i := 0 to high(triangles) do begin
 			t := @triangles[i];
-			if (t^.err[3]>threshold) then continue;
-			if (t^.deleted) then continue;
-			if (t^.dirty) then continue;
+			if (t^.err[3]>threshold) or (t^.deleted) or (t^.dirty) then continue;
 			for j := 0 to 2 do begin
 				if (t^.err[j]<threshold) then begin
 					i0 := t^.v[ j];
@@ -499,7 +521,7 @@ begin
 					update_triangles(i0,v0^,deleted0,deleted_triangles, triangles, vertices, refs, nrefs);
 					update_triangles(i0,v1^,deleted1,deleted_triangles, triangles, vertices, refs, nrefs);
 					tcount := nrefs - tstart;//length(refs)-tstart;
-					if(tcount<=v0^.tcount) then begin // save ram
+					if (tcount<=v0^.tcount) then begin // save ram
 					  if (tcount > 0) then
 						move(refs[tstart], refs[v0^.tstart], tcount * sizeof(TRef));  //Move(src,dest,count);
 					end else // append
