@@ -27,7 +27,7 @@ begin
   Reset (F);
   result := FileSize(F);
   Close (F);
-end;
+end; // FSize()
 
 function LoadMz3Core(const FileName: string; var Faces: TFaces; var Vertices: TVertices; var vertexRGBA: TVertexRGBA; var intensity: TFloats): boolean;
 const
@@ -113,8 +113,7 @@ begin
 		writeln('Warning: ignoring vertex intensities');
 		setlength(intensity, 0);
 	end;
-
-end;
+end; // LoadMz3()
 
 procedure SaveMz3Core(const FileName: string; Faces: TFaces; Vertices: TVertices; vertexRGBA: TVertexRGBA; intensity: TFloats);
 const
@@ -169,7 +168,7 @@ begin
   zStream.CopyFrom(mStream, mStream.Size);
   zStream.Free;
   mStream.Free;
-end;
+end; // SaveMz3Core()
 
 procedure SaveMz3(const FileName: string; var faces: TFaces; var vertices: TVertices);
 var
@@ -179,8 +178,7 @@ begin
 	setlength(vertexRGBA, 0);
 	setlength(intensity,0);
 	SaveMz3Core(FileName, faces, vertices, vertexRGBA, intensity);
-end;
-
+end; //SaveMz3()
 
 end.
 

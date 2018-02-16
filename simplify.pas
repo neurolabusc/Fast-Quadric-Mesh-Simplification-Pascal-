@@ -13,7 +13,7 @@ program simplify;
 {$IFDEF FPC}{$mode objfpc}{$H+}{$ENDIF}
 uses
  {$IFDEF FPC} mz3,  {$IFNDEF DARWIN}DateUtils, {$ENDIF}{$ELSE} Windows, {$ENDIF}
- Classes, meshify_simplify_quadric, obj, sysutils;
+ Classes, meshify_simplify_quadric, obj, sysutils, mergevertices;
 
 procedure ShowHelp;
 begin
@@ -22,7 +22,9 @@ begin
 	writeln(' Input: name of existing MZ3 or OBJ format mesh');
  	writeln(' Output: name for decimated MZ3 or OBJ format mesh');
  	writeln(' Ratio: (default = 0.2) for example 0.1 will decimate 90% of triangles');
- 	writeln(' Agressiveness: (default = 2.0) faster (9) or better decimation (1)');
+ 	writeln(' Agressiveness: (default = 3.0) faster (9) or better decimation (1)');
+ 	writeln(' Tolerance: (default = 0.0) vertices closer to each other than this distance will be merged');
+
  	writeln('Notes:');
  	writeln(' The OBJ format is popular and useful for sharing files');
  	writeln(' The MZ3 format is creates more compact files');
@@ -59,7 +61,7 @@ begin
 end;
 {$ENDIF}
 
-procedure DecimateMesh(inname, outname: string; ratio, agress: single);
+procedure DecimateMesh(inname, outname: string; ratio, agress, tolerance: single);
 var
   targetTri, startTri: integer;
   faces: TFaces;
@@ -72,7 +74,7 @@ begin
   else
   {$ENDIF}
     LoadObj(inname, faces, vertices);
-  printf(format(' simplifying %s with a ratio of %.2f and agressiveness of %.2f', [inname, ratio, agress ]));
+  printf(format(' simplify %s with ratio = %.2f, agressiveness = %.2f and tol = %.5f', [inname, ratio, agress, tolerance ]));
   startTri := length(faces);
   targetTri := round(length(faces) * ratio);
   if (targetTri < 0) or (length(faces) < 1) or (length(vertices) < 3) then begin
@@ -80,7 +82,14 @@ begin
      exit;
   end;
   {$IFDEF FPC} {$IFDEF DARWIN} msec := GetTickCount64(); {$ELSE}tic := Now();{$ENDIF} {$ELSE} msec := GetTickCount();{$ENDIF}
-  simplify_mesh(faces, vertices, targetTri, agress);
+  simplify_mesh_lossless(faces, vertices);
+  UnifyVertices(faces, vertices, tolerance);
+  if ratio = 1 then
+  	printf('Lossless compression only')
+  else
+  	simplify_mesh(faces, vertices, targetTri, agress);
+  UnifyVertices(faces, vertices, tolerance);
+  simplify_mesh_lossless(faces, vertices);
   {$IFDEF FPC} {$IFDEF DARWIN} msec := GetTickCount64()-msec; {$ELSE}msec := MilliSecondsBetween(Now(),tic);{$ENDIF} {$ELSE} msec := GetTickCount() - msec; {$ENDIF}
   printf(format(' number of triangles reduced from %d to %d (%.3f, %.2fsec)', [startTri, length(Faces), length(Faces)/startTri, msec*0.001  ]));
   if length(outname) > 0 then begin
@@ -99,7 +108,7 @@ end;
 procedure ParseCmds;
 var
 	inname, outname: string;
-	ratio, agress: single;
+	ratio, agress, tolerance: single;
 begin
 	printf('Mesh Simplification (C)2014 by Sven Forstmann, MIT License '+{$IFDEF CPU64}'64-bit'{$ELSE}'32-bit'{$ENDIF});
 	if ParamCount < 1 then begin
@@ -118,14 +127,17 @@ begin
   	ratio := 0.2;
   	if ParamCount > 2 then
   		ratio := StrToFloatDef(paramstr(3),0.5);
-  	if (ratio <= 0.0) or (ratio >= 1.0) then begin
-  		printf('Ratio must be more than zero and less than one.');
+  	if (ratio <= 0.0) or (ratio > 1.0) then begin
+  		printf('Ratio must be more than zero and equal to or less than one.');
   		exit;
   	end;
-  	agress := 2.0;
-  	if ParamCount > 2 then
-  		agress := StrToFloatDef(paramstr(4),2.0);
-	DecimateMesh(inname, outname, ratio, agress);
+  	agress := 3.0;
+  	if ParamCount > 3 then
+  		agress := StrToFloatDef(paramstr(4), 3.0);
+  	tolerance := 0;
+  	if ParamCount > 4 then
+  		tolerance := StrToFloatDef(paramstr(5), 0.0);
+	DecimateMesh(inname, outname, ratio, agress, tolerance);
 end;
 
 begin
