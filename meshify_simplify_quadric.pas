@@ -14,9 +14,9 @@ uses
     Math;
 Type
   TPoint3f = packed record
-    X: single;
-    Y: single;
-    Z: single
+    X: Single;
+    Y: Single;
+    Z: Single
   end;
  TPoint3i = packed record
     X: longint;
@@ -32,7 +32,7 @@ procedure simplify_mesh_lossless(var faces : TFaces; var verts: TVertices);
 implementation
 
 type
-  TFloat = single; //"TFloat = single" is faster "TFloat = double" more precise
+  TFloat = double;
   TSymetricMatrix = array [0..9] of TFloat;
   TRef = record
 	  tid,tvertex: integer;
@@ -89,7 +89,7 @@ begin
 	     - m[a13]*m[a22]*m[a31] - m[a11]*m[a23]*m[a32]- m[a12]*m[a21]*m[a33];
 end; // symMatDet()
 
-function ptf(x,y,z: single):TPoint3f;
+function ptf(x,y,z: TFloat):TPoint3f;
 begin
      result.x := x;
      result.y := y;
@@ -118,16 +118,16 @@ end; // vSubtract()
 
 procedure vNormalize(var v: TPoint3f);  {$IFDEF FPC}inline;{$ENDIF}
 var
-   len: single;
+   len: TFloat;
 begin
      len := sqrt( (v.X*v.X) + (v.Y*v.Y) + (v.Z*v.Z) );
-     if len <= 0 then exit;
+     if len <= 0 then len := 0.001;
      v.X := v.X / len;
      v.Y := v.Y / len;
      v.Z := v.Z / len;
 end; // vNormalize()
 
-function vDot (A, B: TPoint3f): single; {$IFDEF FPC}inline;{$ENDIF}
+function vDot (A, B: TPoint3f): TFloat; {$IFDEF FPC}inline;{$ENDIF}
 begin  //dot product
      result := A.X*B.X + A.Y*B.Y + A.Z*B.Z;
 end; // vDot()
@@ -598,7 +598,6 @@ begin
 			if not IsZero(t^.err[3]) then continue;
 			if (t^.deleted) then continue;
 			if (t^.dirty) then continue;
-
 			for j := 0 to 2 do begin
 				if IsZero(t^.err[j]) then begin
 					i0 := t^.v[ j];

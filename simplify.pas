@@ -75,23 +75,25 @@ begin
   {$ENDIF}
     LoadObj(inname, faces, vertices);
   printf(format(' simplify %s with ratio = %.2f, agressiveness = %.2f and tol = %.5f', [inname, ratio, agress, tolerance ]));
-  startTri := length(faces);
+  printf(format(' Input: %d vertices, %d triangles', [length(vertices), length(faces)]));
   targetTri := round(length(faces) * ratio);
+  startTri := length(faces);
   if (targetTri < 0) or (length(faces) < 1) or (length(vertices) < 3) then begin
      printf('Unable to load the mesh');
      exit;
   end;
   {$IFDEF FPC} {$IFDEF DARWIN} msec := GetTickCount64(); {$ELSE}tic := Now();{$ENDIF} {$ELSE} msec := GetTickCount();{$ENDIF}
   UnifyVertices(faces, vertices, tolerance); //remove duplicated or virtually duplicated vertices
-  simplify_mesh_lossless(faces, vertices);
+  //
   if ratio = 1 then
   	printf('Lossless compression only')
-  else
+  else begin
+  	simplify_mesh_lossless(faces, vertices); //run lossless before simplify - see if free savings
   	simplify_mesh(faces, vertices, targetTri, agress);
-  UnifyVertices(faces, vertices, tolerance);
-  simplify_mesh_lossless(faces, vertices);
+  end;
+  simplify_mesh_lossless(faces, vertices); //run lossless after simplify - see if free savings left
   {$IFDEF FPC} {$IFDEF DARWIN} msec := GetTickCount64()-msec; {$ELSE}msec := MilliSecondsBetween(Now(),tic);{$ENDIF} {$ELSE} msec := GetTickCount() - msec; {$ENDIF}
-  printf(format(' number of triangles reduced from %d to %d (%.3f, %.2fsec)', [startTri, length(Faces), length(Faces)/startTri, msec*0.001  ]));
+  printf(format(' Output: %d vertices, %d triangles (%.3f, %.2fsec)', [length(vertices), length(faces), length(Faces)/startTri, msec*0.001  ]));
   if length(outname) > 0 then begin
   	printf('  Creating file '+ outname);
   	{$IFDEF FPC}
