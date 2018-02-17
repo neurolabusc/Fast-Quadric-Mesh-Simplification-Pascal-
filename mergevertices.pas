@@ -179,12 +179,15 @@ procedure UnifyVertices(var faces: TFaces;  var vertices: TVertices; Radius: sin
 // http://www.mathworks.com/matlabcentral/fileexchange/29986-patch-slim--patchslim-m-
 var vStart, vEnd: integer;
 begin
-	if (Radius <= 0) then exit;
+	if (Radius < 0) then exit;
 	vStart := length(vertices);
     ClusterVertex(faces, vertices, Radius);
     vEnd :=  length(vertices);
     if vStart = vEnd then exit;
-    writeln(format(' removed identical(ish) vertices, reducing number from %d to %d', [vStart, vEnd ]));
+    if (Radius = 0) then
+    	writeln(format(' removed identical vertices, reducing number from %d to %d', [vStart, vEnd ]))
+    else
+    	writeln(format(' removed identical(ish) vertices, reducing number from %d to %d', [vStart, vEnd ]));
 
 end;
 

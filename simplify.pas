@@ -82,8 +82,8 @@ begin
      exit;
   end;
   {$IFDEF FPC} {$IFDEF DARWIN} msec := GetTickCount64(); {$ELSE}tic := Now();{$ENDIF} {$ELSE} msec := GetTickCount();{$ENDIF}
+  UnifyVertices(faces, vertices, tolerance); //remove duplicated or virtually duplicated vertices
   simplify_mesh_lossless(faces, vertices);
-  UnifyVertices(faces, vertices, tolerance);
   if ratio = 1 then
   	printf('Lossless compression only')
   else
