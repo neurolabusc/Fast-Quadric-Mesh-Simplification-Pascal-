@@ -565,12 +565,12 @@ var
 begin
   if (length(faces) < 5) or (length(verts) < 5) then exit;
   //convert simple mesh to verbose structure that allows us to represent quadric properties
-  setlength(triangles, length(Faces));
-  setlength(vertices, length(Verts));
+  setlength(triangles, length(faces));
+  setlength(vertices, length(verts));
   for i := 0 to high(triangles) do begin
-      triangles[i].v[0] := Faces[i].X;
-      triangles[i].v[1] := Faces[i].Y;
-      triangles[i].v[2] := Faces[i].Z;
+      triangles[i].v[0] := faces[i].X;
+      triangles[i].v[1] := faces[i].Y;
+      triangles[i].v[2] := faces[i].Z;
   end;
   for i := 0 to high(verts) do
       vertices[i].p := verts[i];
@@ -587,8 +587,8 @@ begin
       deleted_triangles := 0;
 		// update mesh continuously
 		update_mesh(iteration, triangles, vertices, refs, nrefs);
-                iteration := iteration + 1;
-                // clear dirty flag
+        iteration := iteration + 1;
+        // clear dirty flag
 		for i := 0 to high(triangles) do
 		    triangles[i].dirty := false;
 		// All triangles with edges of zero will be removed
@@ -632,6 +632,8 @@ begin
 			// done?
 		end;//for i :, each triangle
 	end; //while we are still deleting triangles
+    update_mesh(iteration, triangles, vertices, refs, nrefs);
+
     // clean up mesh
     compact_mesh(triangles, vertices);
     //now convert back to simple structure
